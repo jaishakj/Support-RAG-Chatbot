@@ -1,0 +1,98 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(AGENT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  agent     Agent?
+  calls     Call[]
+}
+
+model Agent {
+  id           String   @id @default(uuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id])
+  status       Status   @default(OFFLINE)
+  efficiency   Float    @default(0)
+  satisfaction Float    @default(0)
+  calls        Call[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Call {
+  id          String       @id @default(uuid())
+  customerId  String
+  agentId     String
+  agent       Agent        @relation(fields: [agentId], references: [id])
+  userId      String
+  user        User         @relation(fields: [userId], references: [id])
+  status      CallStatus   @default(ACTIVE)
+  type        String
+  sentiment   Sentiment    @default(NEUTRAL)
+  duration    Int          @default(0)
+  startTime   DateTime     @default(now())
+  endTime     DateTime?
+  recordings  Recording[]
+  transcripts Transcript[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Recording {
+  id        String   @id @default(uuid())
+  callId    String
+  call      Call     @relation(fields: [callId], references: [id])
+  url       String
+  duration  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Transcript {
+  id        String   @id @default(uuid())
+  callId    String
+  call      Call     @relation(fields: [callId], references: [id])
+  content   String
+  timestamp DateTime @default(now())
+  speaker   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  ADMIN
+  SUPERVISOR
+  AGENT
+}
+
+enum Status {
+  ONLINE
+  OFFLINE
+  BUSY
+  BREAK
+}
+
+enum CallStatus {
+  ACTIVE
+  COMPLETED
+  DROPPED
+  TRANSFERRED
+}
+
+enum Sentiment {
+  POSITIVE
+  NEUTRAL
+  NEGATIVE
+}
