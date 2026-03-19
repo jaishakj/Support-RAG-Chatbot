@@ -20,26 +20,64 @@ User → React UI → FastAPI → LangChain RAG pipeline
 
 ```
 support-rag/
+├── .gitignore
+├── README.md
+├── docker-compose.yml
+│
 ├── backend/
-│   ├── app/
-│   │   ├── api/          # FastAPI routers (chat, ingest, health)
-│   │   ├── core/         # Config, settings
-│   │   ├── models/       # Pydantic schemas
-│   │   └── services/     # RAG chain, vector store, memory
-│   ├── data/
-│   │   └── sample_docs.py  # 8 sample support documents
+│   ├── Dockerfile
+│   ├── requirements.txt
 │   ├── .env.example
-│   ├── Dockerfile
-│   └── requirements.txt
-├── frontend/
-│   ├── src/
-│   │   ├── components/   # Header, Sidebar, MessageBubble, ChatInput, MessageList
-│   │   ├── services/     # Axios API client
-│   │   ├── store/        # Zustand state
-│   │   └── types/        # TypeScript types
-│   ├── Dockerfile
-│   └── package.json
-└── docker-compose.yml
+│   ├── app/
+│   │   ├── __init__.py
+│   │   ├── main.py                   # FastAPI app, lifespan, CORS, routers
+│   │   ├── api/
+│   │   │   ├── __init__.py
+│   │   │   ├── chat.py               # POST /chat/, GET+DELETE /chat/history
+│   │   │   ├── health.py             # GET /health
+│   │   │   └── ingest.py             # POST /ingest/sample, /ingest/custom
+│   │   ├── core/
+│   │   │   ├── __init__.py
+│   │   │   └── config.py             # Pydantic settings (env vars)
+│   │   ├── models/
+│   │   │   ├── __init__.py
+│   │   │   └── schemas.py            # All request/response Pydantic models
+│   │   ├── services/
+│   │   │   ├── __init__.py
+│   │   │   ├── rag_chain.py          # Core RAG pipeline (Gemini + retrieval + memory)
+│   │   │   ├── vector_store.py       # Pinecone init, ingest, similarity search
+│   │   │   └── memory.py             # Conversation memory (Redis + in-memory fallback)
+│   │   └── utils/
+│   │       └── __init__.py
+│   └── data/
+│       ├── __init__.py
+│       └── sample_docs.py            # 8 sample support documents for ingestion
+│
+└── frontend/
+    ├── Dockerfile
+    ├── index.html
+    ├── package.json
+    ├── postcss.config.js
+    ├── tailwind.config.js
+    ├── tsconfig.json
+    ├── tsconfig.node.json
+    ├── vite.config.ts
+    └── src/
+        ├── main.tsx                  # React entry point
+        ├── App.tsx                   # Root layout, health polling
+        ├── index.css                 # Tailwind + custom design tokens
+        ├── components/
+        │   ├── Header.tsx            # Top bar, health badge, clear/reset actions
+        │   ├── Sidebar.tsx           # System status, ingest button, session stats
+        │   ├── MessageList.tsx       # Scrollable chat + empty state
+        │   ├── MessageBubble.tsx     # User/assistant bubbles, sources, confidence
+        │   └── ChatInput.tsx         # Textarea, send button, suggestion chips
+        ├── services/
+        │   └── api.ts                # Axios client (chat, ingest, health)
+        ├── store/
+        │   └── chatStore.ts          # Zustand global state
+        └── types/
+            └── index.ts              # Shared TypeScript interfaces
 ```
 
 ## Setup
